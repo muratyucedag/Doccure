@@ -168,10 +168,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Order", "Order", "{4339240F
 	ProjectSection(SolutionItems) = preProject
 		OrderExample.txt = OrderExample.txt
 		OrdersControler.txt = OrdersControler.txt
+		OrderService.txt = OrderService.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Product", "Product", "{490C5595-0939-447A-890A-14AECC334366}"
 	ProjectSection(SolutionItems) = preProject
+		OrderAndProducts.txt = OrderAndProducts.txt
 		ProductList.txt = ProductList.txt
 		ProductList2.txt = ProductList2.txt
 	EndProjectSection
@@ -180,6 +182,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cart", "Cart", "{F3144A8A-F
 	ProjectSection(SolutionItems) = preProject
 		CartController.txt = CartController.txt
 		CartService.txt = CartService.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Market", "Market", "{334BC131-90DC-4A14-9417-EEA481D794A0}"
+	ProjectSection(SolutionItems) = preProject
+		Markets.txt = Markets.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doccure.SearchService", "Microservices\Doccure.SearchService\Doccure.SearchService.csproj", "{5EAC2C7C-6537-457C-A505-87153D10E5B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ElasticSearch", "ElasticSearch", "{CB53890C-35A8-46B4-A6FB-F145343C51F3}"
+	ProjectSection(SolutionItems) = preProject
+		WebUI.txt = WebUI.txt
 	EndProjectSection
 EndProject
 Global
@@ -240,6 +254,10 @@ Global
 		{6BB7F0C3-132F-4D47-B1C8-3D915CE53964}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB7F0C3-132F-4D47-B1C8-3D915CE53964}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB7F0C3-132F-4D47-B1C8-3D915CE53964}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EAC2C7C-6537-457C-A505-87153D10E5B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EAC2C7C-6537-457C-A505-87153D10E5B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EAC2C7C-6537-457C-A505-87153D10E5B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EAC2C7C-6537-457C-A505-87153D10E5B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -278,6 +296,9 @@ Global
 		{4339240F-96C7-4FE8-B428-22740C6B5076} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{490C5595-0939-447A-890A-14AECC334366} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F3144A8A-FC9B-4D77-A1DB-91CDBF69A50B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{334BC131-90DC-4A14-9417-EEA481D794A0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{5EAC2C7C-6537-457C-A505-87153D10E5B7} = {F951A47C-3A2E-4F8F-BC42-98D0C1961008}
+		{CB53890C-35A8-46B4-A6FB-F145343C51F3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6794892D-F830-403C-AFC1-D9269F669C31}

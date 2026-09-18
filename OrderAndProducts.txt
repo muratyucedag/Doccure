@@ -1,0 +1,330 @@
+﻿namespace Doccure.WebUI.Dtos.OrderDtos
+{
+    public class ResultOrderDto
+    {
+        public int OrderId { get; set; }
+        public int PatientId { get; set; }
+        public string PatientName { get; set; }
+        public string BlockNo { get; set; }
+        public string FloorNo { get; set; }
+        public string RoomNo { get; set; }
+        public decimal TotalPrice { get; set; }
+        public DateTime OrderDate { get; set; }
+        public string Status { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+
+namespace Doccure.WebUI.Dtos.OrderDtos
+{
+    public class GetByIdOrderDto
+    {
+        public int OrderId { get; set; }
+        public int PatientId { get; set; }
+        public string PatientName { get; set; }
+        public string BlockNo { get; set; }
+        public string FloorNo { get; set; }
+        public string RoomNo { get; set; }
+        public decimal TotalPrice { get; set; }
+        public DateTime OrderDate { get; set; }
+        public string Status { get; set; }
+
+        public List<ResultOrderDetailDto> OrderDetails { get; set; }
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------
+
+namespace Doccure.WebUI.Dtos.OrderDtos
+{
+    public class ResultOrderDetailDto
+    {
+        public int OrderDetailId { get; set; }
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------
+
+using Doccure.WebUI.Dtos.OrderDtos;
+using Newtonsoft.Json;
+
+namespace Doccure.WebUI.Services.OrderServices
+{
+    public class OrderService : IOrderService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public OrderService(
+            HttpClient httpClient,
+            IHttpContextAccessor httpContextAccessor)
+        {
+            _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public async Task<List<ResultOrderDto>> GetAllOrdersAsync()
+        {
+            var responseMessage =
+                await _httpClient.GetAsync("https://localhost:7153/api/Orders");
+
+            var jsonData =
+                await responseMessage.Content.ReadAsStringAsync();
+
+            var values =
+                JsonConvert.DeserializeObject<List<ResultOrderDto>>(jsonData);
+
+            return values;
+        }
+
+        public async Task<GetByIdOrderDto> GetByIdOrderAsync(int id)
+        {
+            var responseMessage =
+                await _httpClient.GetAsync(
+                    $"https://localhost:7153/api/Orders/{id}");
+
+            var jsonData =
+                await responseMessage.Content.ReadAsStringAsync();
+
+            var value =
+                JsonConvert.DeserializeObject<GetByIdOrderDto>(jsonData);
+
+            return value;
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------
+
+ private readonly IOrderService _orderService;
+
+        public OrderController(IOrderService orderService)
+        {
+            _orderService = orderService;
+        }
+
+        public async Task<IActionResult> OrderList()
+        {
+            var values = await _orderService.GetAllOrdersAsync();
+            return View(values);
+        }
+
+        public async Task<IActionResult> OrderDetail(int id)
+        {
+            var value = await _orderService.GetByIdOrderAsync(id);
+            return View(value);
+        }
+
+
+--------------------------------------------------------------------------------------------------
+
+@model List<Doccure.WebUI.Dtos.OrderDtos.ResultOrderDto>
+
+@{
+    ViewData["Title"] = "Siparişler";
+}
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">Siparişler</h3>
+
+    <div class="row">
+
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+
+                <div class="card shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <h5>
+                                Sipariş #@item.OrderId
+                            </h5>
+
+                            <span class="badge bg-warning text-dark">
+                                @item.Status
+                            </span>
+
+                        </div>
+
+                        <hr />
+
+                        <p>
+                            <strong>Hasta:</strong>
+                            @item.PatientName
+                        </p>
+
+                        <p>
+                            <strong>Konum:</strong>
+                            @item.BlockNo Blok /
+                            @item.FloorNo. Kat /
+                            Oda @item.RoomNo
+                        </p>
+
+                        <p>
+                            <strong>Sipariş Tarihi:</strong>
+                            @item.OrderDate.ToString("dd.MM.yyyy HH:mm")
+                        </p>
+
+                        <p>
+                            <strong>Toplam:</strong>
+                            @item.TotalPrice.ToString("N2") ₺
+                        </p>
+
+                        <a href="/Order/OrderDetail/@item.OrderId"
+                           class="btn btn-primary">
+
+                            Sipariş Detayı
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+--------------------------------------------------------------------------------------------------
+
+@model Doccure.WebUI.Dtos.OrderDtos.GetByIdOrderDto
+
+@{
+    ViewData["Title"] = "Sipariş Detayı";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+
+            <div class="d-flex justify-content-between">
+
+                <h4>
+                    Sipariş #@Model.OrderId
+                </h4>
+
+                <span class="badge bg-warning text-dark">
+                    @Model.Status
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Hasta:</strong>
+                        @Model.PatientName
+                    </p>
+
+                    <p>
+                        <strong>Hasta ID:</strong>
+                        @Model.PatientId
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Konum:</strong>
+                        @Model.BlockNo Blok /
+                        @Model.FloorNo. Kat /
+                        Oda @Model.RoomNo
+                    </p>
+
+                    <p>
+                        <strong>Tarih:</strong>
+                        @Model.OrderDate.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+
+                </div>
+
+            </div>
+
+            <table class="table table-bordered table-hover">
+
+                <thead>
+
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Birim Fiyat</th>
+                        <th>Adet</th>
+                        <th>Toplam</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.ProductName
+                            </td>
+
+                            <td>
+                                @item.UnitPrice.ToString("N2") ₺
+                            </td>
+
+                            <td>
+                                @item.Quantity
+                            </td>
+
+                            <td>
+                                @item.TotalPrice.ToString("N2") ₺
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+            <div class="text-end">
+
+                <h4>
+                    Genel Toplam:
+                    @Model.TotalPrice.ToString("N2") ₺
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------

@@ -1,0 +1,74 @@
+﻿@model List<Doccure.WebUI.Dtos.OrderDtos.ResultOrderDto>
+
+@{
+    ViewData["Title"] = "Siparişler";
+    Layout = null;
+}
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">Siparişler</h3>
+
+    <div class="row">
+
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+
+                <div class="card shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between">
+
+                            <h5>
+                                Sipariş #@item.OrderId
+                            </h5>
+
+                            <span class="badge bg-warning text-dark">
+                                @item.Status
+                            </span>
+
+                        </div>
+
+                        <hr />
+
+                        <p>
+                            <strong>Hasta:</strong>
+                            @item.PatientName
+                        </p>
+
+                        <p>
+                            <strong>Konum:</strong>
+                            @item.BlockNo Blok /
+                            @item.FloorNo. Kat /
+                            Oda @item.RoomNo
+                        </p>
+
+                        <p>
+                            <strong>Sipariş Tarihi:</strong>
+                            @item.OrderDate.ToString("dd.MM.yyyy HH:mm")
+                        </p>
+
+                        <p>
+                            <strong>Toplam:</strong>
+                            @item.TotalPrice.ToString("N2") ₺
+                        </p>
+
+                        <a href="/Order/OrderDetail/@item.OrderId"
+                           class="btn btn-primary">
+
+                            Sipariş Detayı
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>

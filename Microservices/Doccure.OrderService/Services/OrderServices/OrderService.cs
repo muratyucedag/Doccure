@@ -17,9 +17,18 @@ namespace Doccure.OrderService.Services.OrderServices
         }
         public async Task CreateOrderAsync(CreateOrderDto createOrderDto)
         {
+            foreach (var item in createOrderDto.OrderDetails)
+            {
+                item.TotalPrice = item.UnitPrice * item.Quantity;
+            }
+
+            createOrderDto.TotalPrice = createOrderDto.OrderDetails.Sum(x => x.TotalPrice);
+
             var value = _mapper.Map<Order>(createOrderDto);
+
             value.OrderDate = DateTime.Now;
             value.Status = "Waiting";
+
             await _context.Orders.AddAsync(value);
             await _context.SaveChangesAsync();
         }

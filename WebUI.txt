@@ -1,0 +1,792 @@
+﻿
+<!DOCTYPE html>
+<!--
+    Doccure — Advanced Search Module
+    ============================================================
+    Drop-in module for the existing Doccure project.
+    For ASP.NET Core MVC:
+      - Rename to Views/AdvancedSearch/Index.cshtml
+      - Remove <html>/<head>/<body> and place the .adv-search markup
+        inside your _Layout.cshtml content section
+      - Move the <style> block to wwwroot/css/advanced-search.css
+      - Move the <script> block to wwwroot/js/advanced-search.js
+    No backend / Elasticsearch logic included — demo data only.
+    ============================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Search — Doccure</title>
+
+<!-- Bootstrap 5 (same version family Doccure uses) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Doccure fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Feather icons -->
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js"></script>
+
+<style>
+:root{
+  /* Doccure design tokens */
+  --dc-primary:#14BEF0;
+  --dc-primary-2:#0DE0FE;
+  --dc-primary-dark:#0aa5d1;
+  --dc-navy:#1B5A90;
+  --dc-heading:#272B41;
+  --dc-muted:#6E7191;
+  --dc-line:#E9ECF1;
+  --dc-panel:#F8F9FC;
+  --dc-star:#FFA500;
+  --dc-success:#28C76F;
+  --dc-danger:#EE4E4E;
+  --dc-radius:12px;
+  --dc-shadow:0 12px 32px rgba(27,90,144,.08);
+  --dc-shadow-sm:0 4px 14px rgba(27,90,144,.06);
+}
+
+*{box-sizing:border-box}
+body{
+  font-family:'Roboto',system-ui,sans-serif;
+  background:#F2F6FA;
+  color:var(--dc-heading);
+  margin:0;
+}
+h1,h2,h3,h4,h5,h6,.h-font{font-family:'Poppins',sans-serif;}
+
+/* ------------------------------------------------------------------ */
+/* Breadcrumb strip                                                    */
+/* ------------------------------------------------------------------ */
+.adv-breadcrumb{
+  background:linear-gradient(93deg,var(--dc-navy),#14688f);
+  color:#fff;padding:26px 0;
+}
+.adv-breadcrumb h2{font-size:24px;font-weight:600;margin:0;}
+.adv-breadcrumb .crumbs{font-size:14px;color:#cfe6f4;margin-top:4px;}
+.adv-breadcrumb .crumbs a{color:#fff;text-decoration:none;}
+
+/* ------------------------------------------------------------------ */
+/* Search hero                                                         */
+/* ------------------------------------------------------------------ */
+.search-hero{
+  background:linear-gradient(93deg,var(--dc-primary),var(--dc-primary-2));
+  padding:44px 0 60px;
+  position:relative;
+}
+.search-hero .lead-copy{color:#eafaff;text-align:center;margin-bottom:22px;}
+.search-hero .lead-copy h3{color:#fff;font-weight:600;font-size:26px;margin-bottom:6px;}
+
+.search-shell{position:relative;max-width:820px;margin:0 auto;}
+.search-box{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border-radius:16px;
+  box-shadow:0 20px 50px rgba(10,80,120,.25);
+  padding:10px 10px 10px 22px;
+}
+.search-box .lead-icon{color:var(--dc-primary);flex:0 0 auto;}
+.search-box input{
+  border:0;outline:0;flex:1;font-size:17px;
+  padding:14px 6px;color:var(--dc-heading);
+  font-family:'Roboto',sans-serif;background:transparent;
+}
+.search-box input::placeholder{color:#9aa2b1;}
+.search-box .btn-search{
+  background:linear-gradient(93deg,var(--dc-navy),#14688f);
+  color:#fff;border:0;border-radius:12px;
+  padding:14px 30px;font-family:'Poppins';font-weight:500;font-size:15px;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  transition:filter .15s;
+}
+.search-box .btn-search:hover{filter:brightness(1.08);}
+
+/* Autocomplete dropdown */
+.autocomplete{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;
+  background:#fff;border-radius:14px;box-shadow:var(--dc-shadow);
+  padding:8px;z-index:40;display:none;overflow:hidden;
+}
+.autocomplete.open{display:block;animation:acIn .16s ease;}
+@keyframes acIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.ac-group-label{
+  font-family:'Poppins';font-size:11px;letter-spacing:.4px;
+  color:var(--dc-muted);padding:10px 12px 4px;text-transform:uppercase;
+}
+.ac-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;
+  cursor:pointer;color:var(--dc-heading);font-size:14.5px;
+}
+.ac-item:hover,.ac-item.active{background:#EAF7FE;}
+.ac-item .ac-ico{
+  width:34px;height:34px;border-radius:9px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+}
+.ac-ico.doctor{background:#14BEF0;}
+.ac-ico.specialty{background:#7B61FF;}
+.ac-ico.branch{background:#28C76F;}
+.ac-ico.hospital{background:#F5964A;}
+.ac-ico.service{background:#EE4E7B;}
+.ac-item .ac-sub{font-size:12px;color:var(--dc-muted);}
+.ac-item .ac-meta{margin-left:auto;font-size:12px;color:var(--dc-muted);}
+.ac-empty{padding:22px;text-align:center;color:var(--dc-muted);font-size:14px;}
+
+/* recent + popular chips inside hero */
+.hero-chips{max-width:820px;margin:20px auto 0;}
+.hero-chips .chip-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;}
+.hero-chips .chip-lbl{
+  color:#eafaff;font-size:13px;font-family:'Poppins';font-weight:500;
+  display:flex;align-items:center;gap:6px;min-width:150px;
+}
+.chip{
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);
+  color:#fff;border-radius:30px;padding:6px 14px;font-size:13px;
+  cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:6px;
+}
+.chip:hover{background:rgba(255,255,255,.3);}
+.chip.solid{background:#fff;color:var(--dc-navy);border-color:#fff;font-weight:500;}
+
+/* ------------------------------------------------------------------ */
+/* Category tabs                                                       */
+/* ------------------------------------------------------------------ */
+.result-tabs-wrap{
+  background:#fff;border-bottom:1px solid var(--dc-line);
+  box-shadow:var(--dc-shadow-sm);position:sticky;top:0;z-index:30;
+}
+.result-tabs{display:flex;gap:4px;overflow-x:auto;}
+.result-tabs .tab{
+  border:0;background:transparent;padding:18px 20px;cursor:pointer;
+  font-family:'Poppins';font-weight:500;font-size:15px;color:var(--dc-muted);
+  border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:8px;
+}
+.result-tabs .tab .count{
+  background:var(--dc-panel);color:var(--dc-muted);border-radius:20px;
+  font-size:12px;padding:1px 9px;font-family:'Roboto';
+}
+.result-tabs .tab.active{color:var(--dc-primary);border-bottom-color:var(--dc-primary);}
+.result-tabs .tab.active .count{background:#EAF7FE;color:var(--dc-primary-dark);}
+
+/* ------------------------------------------------------------------ */
+/* Layout                                                              */
+/* ------------------------------------------------------------------ */
+.adv-body{padding:26px 0 60px;}
+
+/* Filter rail */
+.filter-panel{
+  background:#fff;border-radius:var(--dc-radius);box-shadow:var(--dc-shadow-sm);
+  position:sticky;top:78px;
+}
+.filter-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--dc-line);
+}
+.filter-head h5{margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.btn-clear{
+  background:none;border:0;color:var(--dc-danger);font-size:13px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'Poppins';
+}
+.btn-clear:hover{text-decoration:underline;}
+.filter-group{padding:16px 20px;border-bottom:1px solid var(--dc-line);}
+.filter-group:last-child{border-bottom:0;}
+.filter-group .fg-title{
+  font-family:'Poppins';font-size:13.5px;font-weight:600;color:var(--dc-heading);
+  margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;
+}
+.filter-group .fg-title .toggle{color:var(--dc-muted);cursor:pointer;}
+.form-check{margin-bottom:8px;}
+.form-check-input:checked{background-color:var(--dc-primary);border-color:var(--dc-primary);}
+.form-check-label{font-size:14px;color:#4b5266;cursor:pointer;}
+.form-check-label .fc-count{color:var(--dc-muted);font-size:12.5px;}
+.form-select,.range-note{font-size:14px;}
+.form-select:focus{border-color:var(--dc-primary);box-shadow:0 0 0 .18rem rgba(20,190,240,.18);}
+
+/* rating filter pills */
+.rating-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;color:#4b5266;font-size:14px;}
+.rating-row .stars{color:var(--dc-star);letter-spacing:1px;}
+.rating-row input{accent-color:var(--dc-primary);}
+
+/* range slider */
+.exp-range{width:100%;accent-color:var(--dc-primary);}
+.range-note{display:flex;justify-content:space-between;color:var(--dc-muted);font-size:12.5px;margin-top:4px;}
+
+/* Results toolbar */
+.results-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:#fff;border-radius:var(--dc-radius);box-shadow:var(--dc-shadow-sm);
+  padding:14px 20px;margin-bottom:18px;flex-wrap:wrap;
+}
+.results-toolbar .rc{font-size:14px;color:var(--dc-muted);}
+.results-toolbar .rc b{color:var(--dc-heading);font-family:'Poppins';}
+.results-toolbar .rc .term{color:var(--dc-primary-dark);}
+.toolbar-right{display:flex;align-items:center;gap:12px;}
+.sort-wrap{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--dc-muted);}
+.sort-wrap select{min-width:190px;}
+.view-toggle{display:flex;border:1px solid var(--dc-line);border-radius:9px;overflow:hidden;}
+.view-toggle button{border:0;background:#fff;padding:8px 10px;color:var(--dc-muted);cursor:pointer;}
+.view-toggle button.active{background:var(--dc-primary);color:#fff;}
+
+/* ------------------------------------------------------------------ */
+/* Doctor result card                                                  */
+/* ------------------------------------------------------------------ */
+.doc-card{
+  background:#fff;border-radius:var(--dc-radius);box-shadow:var(--dc-shadow-sm);
+  padding:18px;margin-bottom:18px;display:flex;gap:18px;
+  border:1px solid transparent;transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.doc-card:hover{box-shadow:var(--dc-shadow);border-color:#d7ecfa;transform:translateY(-2px);}
+.doc-photo{
+  width:132px;flex:0 0 132px;border-radius:10px;overflow:hidden;position:relative;background:var(--dc-panel);
+}
+.doc-photo img{width:100%;height:100%;object-fit:cover;display:block;aspect-ratio:1/1;}
+.doc-photo .fav{
+  position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;
+  color:var(--dc-danger);cursor:pointer;border:0;
+}
+.doc-photo .avail-dot{
+  position:absolute;bottom:8px;left:8px;font-size:11px;color:#fff;background:var(--dc-success);
+  padding:2px 8px;border-radius:20px;font-family:'Poppins';font-weight:500;
+}
+.doc-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.doc-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.doc-name{font-size:18px;font-weight:600;margin:0;display:flex;align-items:center;gap:7px;}
+.doc-name .verified{color:var(--dc-primary);}
+.doc-spec{color:var(--dc-primary-dark);font-size:14px;font-weight:500;font-family:'Poppins';margin-top:2px;}
+.rating-badge{
+  background:#FFF6E6;color:#c98600;border-radius:8px;padding:5px 10px;font-size:13px;
+  font-family:'Poppins';font-weight:600;display:flex;align-items:center;gap:4px;height:fit-content;
+}
+.rating-badge .star{color:var(--dc-star);}
+.rating-badge .rc-num{color:var(--dc-muted);font-weight:400;font-size:12px;}
+
+.doc-meta{display:flex;flex-wrap:wrap;gap:14px 22px;margin:12px 0;}
+.doc-meta .m{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--dc-muted);}
+.doc-meta .m svg{color:var(--dc-primary);width:16px;height:16px;}
+.doc-meta .m b{color:#4b5266;font-weight:500;}
+
+.doc-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border-top:1px dashed var(--dc-line);padding-top:14px;margin-top:auto;flex-wrap:wrap;
+}
+.next-appt{font-size:13px;color:var(--dc-muted);display:flex;align-items:center;gap:7px;}
+.next-appt .slot{color:var(--dc-success);font-weight:600;font-family:'Poppins';}
+.doc-actions{display:flex;gap:10px;}
+.btn-outline-dc{
+  border:1.5px solid var(--dc-primary);color:var(--dc-primary-dark);background:#fff;
+  border-radius:9px;padding:9px 18px;font-size:13.5px;font-family:'Poppins';font-weight:500;
+  cursor:pointer;transition:background .15s;text-decoration:none;
+}
+.btn-outline-dc:hover{background:#EAF7FE;}
+.btn-fill-dc{
+  border:0;background:linear-gradient(93deg,var(--dc-primary),var(--dc-primary-2));color:#fff;
+  border-radius:9px;padding:9px 20px;font-size:13.5px;font-family:'Poppins';font-weight:500;
+  cursor:pointer;transition:filter .15s;
+}
+.btn-fill-dc:hover{filter:brightness(1.06);}
+
+/* generic entity result cards (specialties / branches / services) */
+.entity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+.entity-card{
+  background:#fff;border-radius:var(--dc-radius);box-shadow:var(--dc-shadow-sm);
+  padding:22px;text-align:center;transition:transform .18s,box-shadow .18s;cursor:pointer;
+}
+.entity-card:hover{transform:translateY(-3px);box-shadow:var(--dc-shadow);}
+.entity-card .ic{
+  width:58px;height:58px;border-radius:14px;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+}
+.entity-card h6{font-size:15.5px;font-weight:600;margin:0 0 4px;}
+.entity-card p{font-size:13px;color:var(--dc-muted);margin:0;}
+
+/* Pagination */
+.adv-pagination{display:flex;justify-content:center;gap:6px;margin-top:26px;flex-wrap:wrap;}
+.adv-pagination button{
+  min-width:40px;height:40px;border-radius:10px;border:1px solid var(--dc-line);
+  background:#fff;color:#4b5266;font-family:'Poppins';font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;
+}
+.adv-pagination button:hover:not(:disabled){border-color:var(--dc-primary);color:var(--dc-primary-dark);}
+.adv-pagination button.active{background:var(--dc-primary);border-color:var(--dc-primary);color:#fff;}
+.adv-pagination button:disabled{opacity:.45;cursor:not-allowed;}
+
+/* Active filter chips above results */
+.active-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.active-filters .af{
+  background:#EAF7FE;color:var(--dc-primary-dark);border-radius:20px;padding:5px 12px;
+  font-size:13px;display:flex;align-items:center;gap:7px;font-family:'Poppins';
+}
+.active-filters .af b{font-weight:600;}
+.active-filters .af .x{cursor:pointer;display:flex;}
+
+/* mobile filter trigger */
+.mobile-filter-btn{display:none;}
+
+@media (max-width:991px){
+  .filter-panel{position:static;margin-bottom:20px;}
+  .filter-col{display:none;}
+  .filter-col.show{display:block;}
+  .mobile-filter-btn{display:inline-flex;align-items:center;gap:8px;}
+}
+@media (max-width:575px){
+  .search-box{flex-wrap:wrap;padding:14px;}
+  .search-box .btn-search{width:100%;justify-content:center;}
+  .doc-card{flex-direction:column;}
+  .doc-photo{width:100%;flex-basis:auto;aspect-ratio:16/9;}
+  .doc-photo img{aspect-ratio:16/9;}
+  .hero-chips .chip-lbl{min-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ Breadcrumb ============ -->
+<div class="adv-breadcrumb">
+  <div class="container">
+    <h2 class="h-font">Advanced Search</h2>
+    <div class="crumbs"><a href="#">Home</a> &nbsp;/&nbsp; Advanced Search</div>
+  </div>
+</div>
+
+<!-- ============ Search hero ============ -->
+<section class="search-hero">
+  <div class="container">
+    <div class="lead-copy">
+      <h3 class="h-font">Find the right care, all in one search</h3>
+      <span>Doctors · Specialties · Branches · Hospitals · Services</span>
+    </div>
+
+    <div class="search-shell">
+      <div class="search-box">
+        <span class="lead-icon"><i data-feather="search"></i></span>
+        <input id="globalSearch" type="text" autocomplete="off"
+               placeholder="Search doctors, specialties, branches, hospitals or services...">
+        <button class="btn-search" onclick="runSearch()">
+          <i data-feather="search" style="width:16px;height:16px"></i> Search
+        </button>
+      </div>
+
+      <!-- Autocomplete dropdown -->
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+
+    <!-- Recent + popular -->
+    <div class="hero-chips">
+      <div class="chip-row" id="recentRow">
+        <span class="chip-lbl"><i data-feather="clock" style="width:15px;height:15px"></i> Recently searched</span>
+        <!-- chips injected -->
+      </div>
+      <div class="chip-row" id="popularRow">
+        <span class="chip-lbl"><i data-feather="trending-up" style="width:15px;height:15px"></i> Popular searches</span>
+        <!-- chips injected -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Category tabs ============ -->
+<div class="result-tabs-wrap">
+  <div class="container">
+    <div class="result-tabs" id="resultTabs">
+      <button class="tab active" data-tab="all">All <span class="count">248</span></button>
+      <button class="tab" data-tab="doctors"><i data-feather="user" style="width:16px;height:16px"></i> Doctors <span class="count">186</span></button>
+      <button class="tab" data-tab="specialties"><i data-feather="activity" style="width:16px;height:16px"></i> Specialties <span class="count">24</span></button>
+      <button class="tab" data-tab="branches"><i data-feather="map-pin" style="width:16px;height:16px"></i> Branches <span class="count">18</span></button>
+      <button class="tab" data-tab="services"><i data-feather="plus-square" style="width:16px;height:16px"></i> Services <span class="count">20</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Body ============ -->
+<div class="adv-body">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Filter rail -->
+      <div class="col-lg-3 filter-col" id="filterCol">
+        <div class="filter-panel">
+          <div class="filter-head">
+            <h5 class="h-font"><i data-feather="sliders" style="width:18px;height:18px"></i> Filters</h5>
+            <button class="btn-clear" onclick="clearFilters()"><i data-feather="rotate-ccw" style="width:14px;height:14px"></i> Clear all</button>
+          </div>
+
+          <!-- City -->
+          <div class="filter-group">
+            <div class="fg-title">City</div>
+            <select class="form-select" id="fCity">
+              <option value="">All cities</option>
+              <option>Istanbul</option>
+              <option>Ankara</option>
+              <option>Izmir</option>
+              <option>Bursa</option>
+              <option>Antalya</option>
+            </select>
+          </div>
+
+          <!-- Specialty -->
+          <div class="filter-group">
+            <div class="fg-title">Specialty</div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="sp1"><label class="form-check-label" for="sp1">Cardiology <span class="fc-count">(42)</span></label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="sp2"><label class="form-check-label" for="sp2">Neurology <span class="fc-count">(28)</span></label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="sp3"><label class="form-check-label" for="sp3">Orthopedics <span class="fc-count">(35)</span></label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="sp4"><label class="form-check-label" for="sp4">Pediatrics <span class="fc-count">(31)</span></label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="sp5"><label class="form-check-label" for="sp5">Dermatology <span class="fc-count">(19)</span></label></div>
+          </div>
+
+          <!-- Branch -->
+          <div class="filter-group">
+            <div class="fg-title">Branch / Hospital</div>
+            <select class="form-select" id="fBranch">
+              <option value="">All branches</option>
+              <option>Doccure Central Hospital</option>
+              <option>Doccure Kadıköy Branch</option>
+              <option>Doccure Ankara Medical Center</option>
+              <option>Doccure Izmir Clinic</option>
+            </select>
+          </div>
+
+          <!-- Rating -->
+          <div class="filter-group">
+            <div class="fg-title">Minimum rating</div>
+            <label class="rating-row"><input type="radio" name="rating"> <span class="stars">★★★★★</span> 5.0</label>
+            <label class="rating-row"><input type="radio" name="rating"> <span class="stars">★★★★</span>☆ 4.0 & up</label>
+            <label class="rating-row"><input type="radio" name="rating"> <span class="stars">★★★</span>☆☆ 3.0 & up</label>
+          </div>
+
+          <!-- Availability -->
+          <div class="filter-group">
+            <div class="fg-title">Availability</div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="av1"><label class="form-check-label" for="av1">Available today</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="av2"><label class="form-check-label" for="av2">Available this week</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="av3"><label class="form-check-label" for="av3">Online consultation</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="av4"><label class="form-check-label" for="av4">Weekend availability</label></div>
+          </div>
+
+          <!-- Experience -->
+          <div class="filter-group">
+            <div class="fg-title">Experience</div>
+            <input type="range" min="0" max="30" value="0" class="exp-range" id="expRange" oninput="document.getElementById('expVal').textContent=this.value+'+ yrs'">
+            <div class="range-note"><span>0 yrs</span><span id="expVal">0+ yrs</span><span>30+ yrs</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="col-lg-9">
+
+        <!-- Toolbar -->
+        <div class="results-toolbar">
+          <div class="rc">
+            Showing <b id="resFrom">1–6</b> of <b id="resTotal">186</b> doctors
+            <span id="resTermWrap"> for “<span class="term" id="resTerm">Cardiology</span>”</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-light btn-sm mobile-filter-btn" onclick="document.getElementById('filterCol').classList.toggle('show')">
+              <i data-feather="sliders" style="width:15px;height:15px"></i> Filters
+            </button>
+            <div class="sort-wrap">
+              <i data-feather="bar-chart-2" style="width:16px;height:16px"></i>
+              <span>Sort by</span>
+              <select class="form-select form-select-sm" id="sortSelect">
+                <option>Best match</option>
+                <option>Highest rated</option>
+                <option>Most experienced</option>
+                <option>Earliest availability</option>
+                <option>Name (A–Z)</option>
+              </select>
+            </div>
+            <div class="view-toggle">
+              <button class="active" title="List view"><i data-feather="list" style="width:16px;height:16px"></i></button>
+              <button title="Grid view"><i data-feather="grid" style="width:16px;height:16px"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active filter chips -->
+        <div class="active-filters" id="activeFilters">
+          <span class="af"><b>Specialty:</b> Cardiology <span class="x"><i data-feather="x" style="width:13px;height:13px"></i></span></span>
+          <span class="af"><b>City:</b> Istanbul <span class="x"><i data-feather="x" style="width:13px;height:13px"></i></span></span>
+          <span class="af"><b>Availability:</b> Available today <span class="x"><i data-feather="x" style="width:13px;height:13px"></i></span></span>
+        </div>
+
+        <!-- Doctor cards -->
+        <div id="resultsArea"></div>
+
+        <!-- Pagination -->
+        <div class="adv-pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================================================================
+   DEMO DATA ONLY — no backend / Elasticsearch. Replace with a
+   server-rendered model or an API call when Elasticsearch is wired in.
+   ================================================================== */
+
+const RECENT   = ['Cardiology','Ahmet','Istanbul','Neurology'];
+const POPULAR  = ['Dermatology','Dr. Elif Yılmaz','Orthopedics','Pediatrics','MR Imaging','Doccure Central Hospital'];
+
+/* autocomplete source, grouped by entity type */
+const SUGGESTIONS = [
+  {type:'doctor',    icon:'user',        label:'Dr. Ahmet Kaya',        sub:'Cardiology · Doccure Central Hospital', meta:'Istanbul'},
+  {type:'doctor',    icon:'user',        label:'Dr. Elif Yılmaz',       sub:'Neurology · Doccure Kadıköy Branch',    meta:'Istanbul'},
+  {type:'doctor',    icon:'user',        label:'Dr. Ahmet Demir',       sub:'Orthopedics · Ankara Medical Center',   meta:'Ankara'},
+  {type:'specialty', icon:'activity',    label:'Cardiology',            sub:'42 doctors available',                  meta:'Specialty'},
+  {type:'specialty', icon:'activity',    label:'Neurology',             sub:'28 doctors available',                  meta:'Specialty'},
+  {type:'branch',    icon:'map-pin',     label:'Doccure Central Hospital', sub:'Şişli, Istanbul',                    meta:'Branch'},
+  {type:'hospital',  icon:'home',        label:'Doccure Ankara Medical Center', sub:'Çankaya, Ankara',               meta:'Hospital'},
+  {type:'service',   icon:'plus-square', label:'MR Imaging',            sub:'Radiology service',                     meta:'Service'},
+  {type:'service',   icon:'plus-square', label:'Cardiac Echo (ECHO)',   sub:'Cardiology service',                    meta:'Service'},
+];
+
+const TYPE_CLASS = {doctor:'doctor',specialty:'specialty',branch:'branch',hospital:'hospital',service:'service'};
+
+/* doctor result demo data */
+const DOCTORS = [
+  {name:'Dr. Ahmet Kaya', spec:'Cardiologist', branch:'Doccure Central Hospital', city:'Istanbul', rating:4.9, reviews:213, exp:15, next:'Today, 3:30 PM', online:true,  img:'https://i.pravatar.cc/240?img=12'},
+  {name:'Dr. Elif Yılmaz', spec:'Neurologist', branch:'Doccure Kadıköy Branch', city:'Istanbul', rating:4.8, reviews:178, exp:12, next:'Tomorrow, 10:00 AM', online:true, img:'https://i.pravatar.cc/240?img=45'},
+  {name:'Dr. Mehmet Şahin', spec:'Orthopedic Surgeon', branch:'Doccure Central Hospital', city:'Istanbul', rating:4.7, reviews:156, exp:18, next:'Today, 5:00 PM', online:false, img:'https://i.pravatar.cc/240?img=33'},
+  {name:'Dr. Zeynep Aydın', spec:'Cardiologist', branch:'Doccure Ankara Medical Center', city:'Ankara', rating:5.0, reviews:241, exp:20, next:'Thu, 9:15 AM', online:true, img:'https://i.pravatar.cc/240?img=47'},
+  {name:'Dr. Can Öztürk', spec:'Pediatrician', branch:'Doccure Izmir Clinic', city:'Izmir', rating:4.6, reviews:98, exp:9, next:'Today, 2:00 PM', online:true, img:'https://i.pravatar.cc/240?img=52'},
+  {name:'Dr. Ayşe Demir', spec:'Dermatologist', branch:'Doccure Kadıköy Branch', city:'Istanbul', rating:4.8, reviews:187, exp:11, next:'Tomorrow, 1:30 PM', online:false, img:'https://i.pravatar.cc/240?img=44'},
+];
+
+/* ---------- render recent + popular chips ---------- */
+function chip(text, solid){
+  return `<span class="chip${solid?' solid':''}" onclick="applyTerm('${text.replace(/'/g,"\\'")}')">${solid?'<i data-feather=&quot;trending-up&quot; style=&quot;width:13px;height:13px&quot;></i>':''}${text}</span>`;
+}
+document.getElementById('recentRow').insertAdjacentHTML('beforeend',
+  RECENT.map(t=>`<span class="chip" onclick="applyTerm('${t}')"><i data-feather="corner-up-left" style="width:13px;height:13px"></i>${t}</span>`).join(''));
+document.getElementById('popularRow').insertAdjacentHTML('beforeend',
+  POPULAR.map(t=>`<span class="chip solid" onclick="applyTerm('${t}')">${t}</span>`).join(''));
+
+/* ---------- autocomplete ---------- */
+const input = document.getElementById('globalSearch');
+const acBox = document.getElementById('autocomplete');
+let acIndex = -1;
+
+function renderAutocomplete(q){
+  const query = q.trim().toLowerCase();
+  if(!query){ acBox.classList.remove('open'); acBox.innerHTML=''; return; }
+
+  const matches = SUGGESTIONS.filter(s =>
+    s.label.toLowerCase().includes(query) || s.sub.toLowerCase().includes(query) || s.type.includes(query));
+
+  if(!matches.length){
+    acBox.innerHTML = `<div class="ac-empty">No matches for “${q}”. Try a doctor, specialty, branch or service.</div>`;
+    acBox.classList.add('open'); return;
+  }
+
+  /* group by type for a search-engine feel */
+  const order = ['doctor','specialty','branch','hospital','service'];
+  const labels = {doctor:'Doctors',specialty:'Specialties',branch:'Branches',hospital:'Hospitals',service:'Services'};
+  let html = '';
+  order.forEach(t=>{
+    const grp = matches.filter(m=>m.type===t);
+    if(!grp.length) return;
+    html += `<div class="ac-group-label">${labels[t]}</div>`;
+    grp.forEach(m=>{
+      html += `<div class="ac-item" onclick="applyTerm('${m.label.replace(/'/g,"\\'")}')">
+        <span class="ac-ico ${TYPE_CLASS[m.type]}"><i data-feather="${m.icon}" style="width:16px;height:16px"></i></span>
+        <div><div>${highlight(m.label,q)}</div><div class="ac-sub">${m.sub}</div></div>
+        <span class="ac-meta">${m.meta}</span>
+      </div>`;
+    });
+  });
+  acBox.innerHTML = html;
+  acBox.classList.add('open');
+  feather.replace();
+  acIndex = -1;
+}
+
+function highlight(text,q){
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return text;
+  return text.slice(0,i)+'<b style="color:#0aa5d1">'+text.slice(i,i+q.length)+'</b>'+text.slice(i+q.length);
+}
+
+input.addEventListener('input', e=>renderAutocomplete(e.target.value));
+input.addEventListener('focus', e=>{ if(e.target.value) renderAutocomplete(e.target.value); });
+document.addEventListener('click', e=>{ if(!e.target.closest('.search-shell')) acBox.classList.remove('open'); });
+
+/* keyboard nav */
+input.addEventListener('keydown', e=>{
+  const items = [...acBox.querySelectorAll('.ac-item')];
+  if(e.key==='ArrowDown'){ e.preventDefault(); acIndex=Math.min(acIndex+1,items.length-1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); acIndex=Math.max(acIndex-1,0); }
+  else if(e.key==='Enter'){ if(acIndex>=0&&items[acIndex]){ items[acIndex].click(); } else { runSearch(); } return; }
+  else return;
+  items.forEach((it,i)=>it.classList.toggle('active',i===acIndex));
+});
+
+/* ---------- search actions ---------- */
+function applyTerm(term){
+  input.value = term;
+  acBox.classList.remove('open');
+  runSearch();
+}
+function runSearch(){
+  const term = input.value.trim();
+  const wrap = document.getElementById('resTermWrap');
+  if(term){ document.getElementById('resTerm').textContent = term; wrap.style.display=''; }
+  else{ wrap.style.display='none'; }
+  renderResults();
+  document.querySelector('.result-tabs-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('#resultTabs .tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('#resultTabs .tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    renderResults(tab.dataset.tab);
+  });
+});
+
+/* ---------- render results ---------- */
+function starStr(r){
+  const full = Math.floor(r);
+  return '★'.repeat(full) + (r-full>=.5?'⯪':'') ;
+}
+function doctorCard(d){
+  return `<div class="doc-card">
+    <div class="doc-photo">
+      <img src="${d.img}" alt="${d.name}">
+      <button class="fav"><i data-feather="heart" style="width:15px;height:15px"></i></button>
+      ${d.online?'<span class="avail-dot">Online</span>':''}
+    </div>
+    <div class="doc-main">
+      <div class="doc-top">
+        <div>
+          <h4 class="doc-name h-font">${d.name} <span class="verified" title="Verified"><i data-feather="check-circle" style="width:16px;height:16px"></i></span></h4>
+          <div class="doc-spec">${d.spec}</div>
+        </div>
+        <div class="rating-badge"><span class="star">★</span> ${d.rating.toFixed(1)} <span class="rc-num">(${d.reviews})</span></div>
+      </div>
+      <div class="doc-meta">
+        <span class="m"><i data-feather="home"></i> <b>${d.branch}</b></span>
+        <span class="m"><i data-feather="map-pin"></i> <b>${d.city}</b></span>
+        <span class="m"><i data-feather="award"></i> <b>${d.exp} yrs</b> experience</span>
+      </div>
+      <div class="doc-foot">
+        <span class="next-appt"><i data-feather="calendar" style="width:15px;height:15px;color:#28C76F"></i> Next available: <span class="slot">${d.next}</span></span>
+        <div class="doc-actions">
+          <a href="#" class="btn-outline-dc">View Profile</a>
+          <button class="btn-fill-dc">Book Appointment</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+const SPECIALTIES = [
+  {name:'Cardiology',icon:'heart',c:'#EE4E7B',n:'42 doctors'},
+  {name:'Neurology',icon:'zap',c:'#7B61FF',n:'28 doctors'},
+  {name:'Orthopedics',icon:'activity',c:'#28C76F',n:'35 doctors'},
+  {name:'Pediatrics',icon:'smile',c:'#F5964A',n:'31 doctors'},
+  {name:'Dermatology',icon:'sun',c:'#14BEF0',n:'19 doctors'},
+  {name:'Ophthalmology',icon:'eye',c:'#1B5A90',n:'16 doctors'},
+];
+const BRANCHES = [
+  {name:'Doccure Central Hospital',icon:'home',c:'#14BEF0',n:'Şişli, Istanbul'},
+  {name:'Doccure Kadıköy Branch',icon:'map-pin',c:'#28C76F',n:'Kadıköy, Istanbul'},
+  {name:'Doccure Ankara Medical Center',icon:'home',c:'#7B61FF',n:'Çankaya, Ankara'},
+  {name:'Doccure Izmir Clinic',icon:'map-pin',c:'#F5964A',n:'Konak, Izmir'},
+];
+const SERVICES = [
+  {name:'MR Imaging',icon:'plus-square',c:'#7B61FF',n:'Radiology'},
+  {name:'Cardiac Echo',icon:'heart',c:'#EE4E7B',n:'Cardiology'},
+  {name:'Blood Tests',icon:'droplet',c:'#EE4E4E',n:'Laboratory'},
+  {name:'Physiotherapy',icon:'activity',c:'#28C76F',n:'Rehabilitation'},
+];
+
+function entityCards(list){
+  return `<div class="entity-grid">${list.map(e=>`
+    <div class="entity-card">
+      <div class="ic" style="background:${e.c}"><i data-feather="${e.icon}" style="width:26px;height:26px"></i></div>
+      <h6 class="h-font">${e.name}</h6>
+      <p>${e.n}</p>
+    </div>`).join('')}</div>`;
+}
+
+function renderResults(tab='all'){
+  const area = document.getElementById('resultsArea');
+  const pag  = document.getElementById('pagination');
+  const af   = document.getElementById('activeFilters');
+  const toolbarTotal = document.getElementById('resTotal');
+  const resFrom = document.getElementById('resFrom');
+
+  if(tab==='specialties'){
+    area.innerHTML = entityCards(SPECIALTIES);
+    toolbarTotal.textContent='24'; resFrom.textContent='1–6';
+    pag.innerHTML=''; af.style.display='none'; feather.replace(); return;
+  }
+  if(tab==='branches'){
+    area.innerHTML = entityCards(BRANCHES);
+    toolbarTotal.textContent='18'; resFrom.textContent='1–4';
+    pag.innerHTML=''; af.style.display='none'; feather.replace(); return;
+  }
+  if(tab==='services'){
+    area.innerHTML = entityCards(SERVICES);
+    toolbarTotal.textContent='20'; resFrom.textContent='1–4';
+    pag.innerHTML=''; af.style.display='none'; feather.replace(); return;
+  }
+
+  /* all / doctors -> doctor cards */
+  af.style.display='flex';
+  toolbarTotal.textContent='186'; resFrom.textContent='1–6';
+  area.innerHTML = DOCTORS.map(doctorCard).join('');
+  renderPagination();
+  feather.replace();
+}
+
+/* ---------- pagination ---------- */
+function renderPagination(){
+  const pag = document.getElementById('pagination');
+  const pages = 5, current = 1;
+  let html = `<button disabled><i data-feather="chevron-left" style="width:16px;height:16px"></i> Prev</button>`;
+  for(let i=1;i<=pages;i++){
+    html += `<button class="${i===current?'active':''}" onclick="gotoPage(${i})">${i}</button>`;
+  }
+  html += `<button>…</button><button onclick="gotoPage(31)">31</button>`;
+  html += `<button onclick="gotoPage(2)">Next <i data-feather="chevron-right" style="width:16px;height:16px"></i></button>`;
+  pag.innerHTML = html; feather.replace();
+}
+function gotoPage(n){
+  document.getElementById('resFrom').textContent = `${(n-1)*6+1}–${n*6}`;
+  document.querySelectorAll('#pagination button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.results-toolbar').scrollIntoView({behavior:'smooth'});
+  renderResults();
+}
+
+/* ---------- active filter chips ---------- */
+document.getElementById('activeFilters').addEventListener('click', e=>{
+  const x = e.target.closest('.x');
+  if(x){ x.closest('.af').remove(); }
+});
+
+/* ---------- clear filters ---------- */
+function clearFilters(){
+  document.querySelectorAll('.filter-panel input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll('.filter-panel input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById('fCity').value='';
+  document.getElementById('fBranch').value='';
+  document.getElementById('expRange').value=0;
+  document.getElementById('expVal').textContent='0+ yrs';
+  document.getElementById('activeFilters').innerHTML='';
+}
+
+/* view toggle */
+document.querySelectorAll('.view-toggle button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.view-toggle button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+/* ---------- init ---------- */
+renderResults();
+feather.replace();
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+﻿@model Doccure.WebUI.Dtos.OrderDtos.GetByIdOrderDto
+
+@{
+    ViewData["Title"] = "Sipariş Detayı";
+    Layout = null;
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+
+            <div class="d-flex justify-content-between">
+
+                <h4>
+                    Sipariş #@Model.OrderId
+                </h4>
+
+                <span class="badge bg-warning text-dark">
+                    @Model.Status
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Hasta:</strong>
+                        @Model.PatientName
+                    </p>
+
+                    <p>
+                        <strong>Hasta ID:</strong>
+                        @Model.PatientId
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Konum:</strong>
+                        @Model.BlockNo Blok /
+                        @Model.FloorNo. Kat /
+                        Oda @Model.RoomNo
+                    </p>
+
+                    <p>
+                        <strong>Tarih:</strong>
+                        @Model.OrderDate.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+
+                </div>
+
+            </div>
+
+            <table class="table table-bordered table-hover">
+
+                <thead>
+
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Birim Fiyat</th>
+                        <th>Adet</th>
+                        <th>Toplam</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.ProductName
+                            </td>
+
+                            <td>
+                                @item.UnitPrice.ToString("N2") ₺
+                            </td>
+
+                            <td>
+                                @item.Quantity
+                            </td>
+
+                            <td>
+                                @item.TotalPrice.ToString("N2") ₺
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+            <div class="text-end">
+
+                <h4>
+                    Genel Toplam:
+                    @Model.TotalPrice.ToString("N2") ₺
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
